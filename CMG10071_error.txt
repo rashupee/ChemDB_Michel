@@ -1,0 +1,2 @@
+CMG10071: something is wrong.
+Error message is: No JSON object could be decoded

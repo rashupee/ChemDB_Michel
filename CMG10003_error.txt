@@ -1,0 +1,2 @@
+CMG10003: something is wrong.
+Error message is: 

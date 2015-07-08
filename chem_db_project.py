@@ -26,5 +26,7 @@ for line in master:
 		
 		findings.close()
 
+master.close()
+
 
 
