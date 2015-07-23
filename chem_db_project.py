@@ -9,8 +9,8 @@ import logging
 
 logging.getLogger('pubchempy').setLevel(logging.DEBUG)
 
-# CMGFileName = 'ChemProjTestData.csv'
-CMGFileName = 'PracticeData.csv'
+CMGFileName = 'ChemProjTestData.csv'
+# CMGFileName = 'PracticeData.csv'
 
 master = open(CMGFileName, 'r')
 
