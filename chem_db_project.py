@@ -16,7 +16,7 @@ master = open(CMGFileName, 'r')
 
 def batchIndexes(cids):
 	""" Returns list of indicies to void timeout with pcp.get_synonyms """
-	max_batch = 6000
+	max_batch = 1000
 	list_size = len(cids)
 	batches = int(len(cids)/max_batch) + 1
 	remainder = list_size % max_batch
