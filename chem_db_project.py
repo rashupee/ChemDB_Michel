@@ -26,6 +26,9 @@ def batchIndexes(cids):
 	index = 0
 	while index < batches:
 		end = begin + max_batch - 1
+		if end >= list_size - 1:
+			batch_indexes.append((begin,list_size - 1))
+			break
 		batch_indexes.append((begin,end))
 		begin = end
 		index += 1
