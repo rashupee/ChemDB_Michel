@@ -15,7 +15,7 @@ CMGFileName = 'ChemProjTestData.csv'
 master = open(CMGFileName, 'r')
 
 def batchIndexes(cids):
-	""" Returns list of indicies to void timeout with pcp.get_synonyms """
+	""" Returns list of indicies to avoid timeout with pcp.get_synonyms """
 	max_batch = 1000
 	list_size = len(cids)
 	batches = int(len(cids)/max_batch) + 1
@@ -41,22 +41,24 @@ for line in master:
 		smiles_param = line.split(',',2)[1]
 		print "Trying pcp.get_cids method with " + smiles_param + "..."
 		try:
+			""" Get all the cids """
 			cids = pcp.get_cids(smiles_param, 'smiles', searchtype='substructure')
+			""" Split the big list of cids into smaller lists """
 			batch_indexes = batchIndexes(cids)
 			findings = open('Results/%s.csv'% CMGName, 'a')
+			cas_rns = []
 			for index in batch_indexes:
-				cas_rns = []
 				print "Processing pcp.get_synonyms with cids batch ", index
-				results = pcp.get_synonyms(cids)
+				results = pcp.get_synonyms(cids[index[0]:index[1]])
 				print "Finding CASRN matches in the synonyms ..."
 				for result in results:
 					for syn in result.get('Synonym', []):
 						match = re.match('(\d{2,7}-\d\d-\d)', syn)
 			    		if match:
 			        		cas_rns.append(match.group(1))
-				print "Writing results to file ..."
-				for element in cas_rns:
-					findings.write(CMGName + ',' + element + '\n')
+			print "Writing results to file ..."
+			for element in cas_rns:
+				findings.write(CMGName + ',' + element + '\n')
 		except Exception as e:
 			print "Checking smiles parameter " + smiles_param + " throws error:"
 			print e.message
