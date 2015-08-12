@@ -41,56 +41,63 @@ def batchIndexes(cids):
 """ Build a csv file with CMG names and keys for asynchronous use with PUG REST API """
 
 master = open(CMGFileName, 'r')
-keymaster = open('Results/CMGKeyList', 'w')
+keymaster = open('Results/CMGKeyList.csv', 'w')
 
 for line in master:
 	CMGName = line.split(',',2)[0]
-	smiles_param = line.split(',',2)[1]
-	r = requests.get('http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/substructure/smiles/%s/JSON'% smiles_param)
-	key = str(r.json()['Waiting']['ListKey'])
-	keymaster.write(CMGName + ',' + key + '\n')
-	print "Got ket for " + CMGName
+	if CMGName and CMGName != '':
+		smiles_param = line.split(',',2)[1]
+		print "smiles_param is " + smiles_param
+		r = requests.get('http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/substructure/smiles/%s/JSON'% smiles_param)
+		print r.text
+		key = str(r.json()['Waiting']['ListKey'])
+		keymaster.write(CMGName + ',' + key + '\n')
+		print "Got key for " + CMGName
 
 keymaster.close()
+master.close()
 
-""" Wait five minutes """
-print "Waiting 5 minutes for PubChem to do its thang..."
-time.sleep(300)
+
+""" Wait a minute """
+print "Waiting 3 minutes for PubChem to collect its thoughts..."
+time.sleep(180)
 
 """ Open keymaster, and work through, line-by-line, matching the CASRNS regex """
-
+keymaster = open('Results/CMGKeyList', 'r')
 for line in keymaster:
-	CMGName = line.split(',',2)[0]
-	key = line.split(',',2)[1]
-	print "Getting cids list for " + CMGName + "..."
-	try:
-		rr = requests.get('http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/listkey/%s/cids/JSON'% key)
-		cids = rr.json()['IdentifierList']['CID']
-		""" Split the big list of cids into smaller lists """
-		batch_indexes = batchIndexes(cids)
-		findings = open('Results/%s.csv'% CMGName, 'a')
-		cas_rns = []
-		for index in batch_indexes:
-			print "Processing pcp.get_synonyms with cids batch ", index
-			results = pcp.get_synonyms(cids[index[0]:index[1]])
-			print "Finding CASRN matches in the synonyms ..."
-			for result in results:
-				for syn in result.get('Synonym', []):
-					match = re.match('(\d{2,7}-\d\d-\d)', syn)
-		    		if match:
-		        		cas_rns.append(match.group(1))
-		print "Writing results to file ..."
-		for element in cas_rns:
-			findings.write(CMGName + ',' + element + '\n')
-	except Exception as e:
-		print "Checking " + CMGName + " throws error:"
-		print e.message
-		findings = open('Results/%s_error.txt'% CMGName, 'a')
-		findings.write(CMGName + ": something is wrong.\nError message is: " + e.message + '\n')
+	data = line.split(',',2)
+	CMGName = data[0]
+	if CMGName and CMGName != '':
+		key = str(data[1]).replace('\n', '')
+		print "Getting cids list for " + CMGName + " with key " + key
+		try:
+			rr = requests.get('http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/listkey/%s/cids/JSON'% key)
+			cids = rr.json()['IdentifierList']['CID']
+			""" Split the big list of cids into smaller lists """
+			batch_indexes = batchIndexes(cids)
+			findings = open('Results/%s.csv'% CMGName, 'a')
+			cas_rns = []
+			for index in batch_indexes:
+				print "Processing pcp.get_synonyms with cids batch ", index
+				results = pcp.get_synonyms(cids[index[0]:index[1]])
+				print "Finding CASRN matches in the synonyms ..."
+				for result in results:
+					for syn in result.get('Synonym', []):
+						match = re.match('(\d{2,7}-\d\d-\d)', syn)
+			    		if match:
+			        		cas_rns.append(match.group(1))
+			print "Writing results to file ..."
+			for element in cas_rns:
+				findings.write(CMGName + ',' + element + '\n')
+		except Exception as e:
+			print "Checking " + CMGName + " throws error:"
+			print e.message
+			findings = open('Results/%s_error.txt'% CMGName, 'a')
+			findings.write(CMGName + ": something is wrong.\nError message is: " + e.message + '\n')
 
 		findings.close()
 
-master.close()
+keymaster.close()
 
 
 
