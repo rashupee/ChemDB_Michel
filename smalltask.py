@@ -1,7 +1,22 @@
 import random
 
 def shorup(fname):
-	# Opens fname.csv in same directory and builds unjagged csv called unjag_fname.csv
+	# To use this function:
+	# Create a directory somewhere convenient from the commandline:
+	# 	mkdir Project
+	#
+	# Put the original csv file here with a name like 'prob.csv'
+	# Also put the text file smalltask.py in this directory
+	#
+	# Go into that directory
+	#	cd Project
+	#
+	# 
+	#
+	#
+	#
+	#
+
 	filename=fname
 	f = open(fname, 'r')
 	g = open('unjag.csv', 'w')
