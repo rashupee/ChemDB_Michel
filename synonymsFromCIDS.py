@@ -2,7 +2,8 @@
 
 
 # Open file, take contents into a list object. Then batch indicies on the cids list.
-# Use re to match with CASRN form. Write to output file results
+# Use regex to match with CASRN form. Write to target file results three csv columns:
+# CMGname,CASRN,IUPACName
 
 # The synonyms will be written to a CMG#####.csv file
 
@@ -56,9 +57,13 @@ def workOnCMG(CMGName):
 		for result in results:
 			for syn in result.get('Synonym', []):
 				match = re.match('(\d{2,7}-\d\d-\d)', syn)
-	    		if match:
-	    			findings.write(CMGName + ",'" + match.group(1) + '\n')
-
+				c=pcp.Compound.from_cid(result.get('CID'))
+	    		if match and c.iupac_name:
+	    			findings.write(CMGName + "," + match.group(1) + "," + c.iupac_name + '\n')
+	    		elif match and not c.iupac_name:
+	    			findings.write(CMGName + "," + match.group(1) + ",\n")
+	    		elif not match and c.iupac_name:
+	    			findings.write(CMGName + ",," + c.iupac_name + '\n')
 	findings.close()
 
 CMGList=['CMG12823','CMG13562','CMG10005','CMG10007']
